@@ -1,0 +1,20 @@
+server:
+  port: 8888
+spring:
+  kafka:
+    bootstrap-servers: xxx.xxx.xxx.xxx:xxxx
+    consumer:
+      group-id: test-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+    template:
+      default-topic: xxxxxxxxx
+#    listener:
+#      type: batch
+logging:
+  level:
+    root: WARN
+    org.springframework: INFO
+    org.apache.kafka: DEBUG
