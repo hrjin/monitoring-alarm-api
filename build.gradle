@@ -5,7 +5,6 @@ plugins {
 }
 
 group = 'org.insoft'
-version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 configurations {
@@ -18,10 +17,22 @@ repositories {
     mavenCentral()
 }
 
+jar {
+    archivesBaseName = 'monitoring-alarm-api'
+}
+
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compile "org.springframework.boot:spring-boot-starter-web"
     // spring-kafka
     compile group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.6.5'
+    compile(group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0')
+    compile(group: 'org.apache.avro', name: 'avro', version: '1.8.2')
+    // https://mvnrepository.com/artifact/com.hortonworks.registries/schema-registry-serdes
+    compile group: 'com.hortonworks.registries', name: 'schema-registry-serdes', version: '0.9.1'
+    compile 'com.fasterxml.jackson.core:jackson-core'
+    compile 'com.fasterxml.jackson.core:jackson-databind'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
