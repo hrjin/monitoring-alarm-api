@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -36,10 +37,6 @@ public class RestTemplateService {
     public RestTemplateService(RestTemplate restTemplate, PropertyService propertyService) {
         this.restTemplate = restTemplate;
         this.propertyService = propertyService;
-//
-//        this.commonApiBase64Authorization = "Basic "
-//                + Base64Utils.encodeToString(
-//                (commonApiAuthorizationId + ":" + commonApiAuthorizationPassword).getBytes(StandardCharsets.UTF_8));
     }
 
 
@@ -78,7 +75,18 @@ public class RestTemplateService {
         }
 
         LOGGER.info("<T> T SEND :: REQUEST: {} BASE-URL: {}, CONTENT-TYPE: {}", httpMethod, reqUrl, reqHeaders.get(CONTENT_TYPE));
-        ResponseEntity<T> resEntity = restTemplate.exchange(propertyService.getKafkaServer() + reqUrl, httpMethod, reqEntity, responseType);
+        ResponseEntity<T> resEntity = null;
+        try {
+            resEntity = restTemplate.exchange(propertyService.getKafkaServer() + reqUrl, httpMethod, reqEntity, responseType);
+        } catch (HttpStatusCodeException exception) {
+            LOGGER.info("HttpStatusCodeException API Call URL : {}, errorCode : {}, errorMessage : {}", reqUrl, exception.getRawStatusCode(), exception.getMessage());
+
+            for (CommonStatusCode code : CommonStatusCode.class.getEnumConstants()) {
+                if(code.getCode() == exception.getRawStatusCode()) {
+                    return (T) new ResultStatus(Constants.RESULT_STATUS_FAIL, code.getMsg());
+                }
+            }
+        }
 
         if (resEntity.getBody() != null) {
             LOGGER.info("RESPONSE-TYPE: {}", resEntity.getBody().getClass());
