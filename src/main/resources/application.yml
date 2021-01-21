@@ -4,11 +4,13 @@ spring:
   kafka:
     bootstrap-servers: xxx.xxx.xxx.xxx:xxxx
     consumer:
-      group-id: test-consumer-group
+      group-id: consumer-group
+      instance:
+        name: my-consumer
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      enable-auto-commit: false
+      enable-auto-commit: true
     template:
       default-topic: xxxxxxxxx
 #    listener:
@@ -18,3 +20,14 @@ logging:
     root: INFO
     org.springframework: INFO
     org.apache.kafka: DEBUG
+
+messaging:
+  pool-size: 3
+  try-count: 3
+  timeout: 3600000
+  ready-fixed-rate: 60000  # 1분
+  ready-initial-delay: 3000
+  progress-fixed-rate: 10000
+  progress-initial-delay: 5000
+  timeout-fixed-rate: 30000
+  timeout-initial-delay: 1700

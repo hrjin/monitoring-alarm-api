@@ -21,6 +21,9 @@ public class PropertyService {
     @Value("${spring.kafka.consumer.group-id}")
     private String groupId;
 
+    @Value("${spring.kafka.consumer.instance.name}")
+    private String instanceName;
+
     @Value("${spring.kafka.consumer.auto-offset-reset}")
     private String offsetReset;
 
@@ -33,5 +36,10 @@ public class PropertyService {
     @Value("${spring.kafka.consumer.enable-auto-commit}")
     private String enableAutoCommit;
 
+    @Value("${spring.kafka.template.default-topic}")
+    private String defaultTopic;
+
+    @Value("${messaging.pool-size}")
+    private int messagingPoolSize;
 
 }
