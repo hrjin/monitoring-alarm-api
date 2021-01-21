@@ -19,7 +19,7 @@ import java.util.Map;
 @Slf4j
 @Service
 public class TopicsService {
-    private static final Logger logger = LoggerFactory.getLogger(TopicsService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TopicsService.class);
     private final RestTemplateService restTemplateService;
 
     @Autowired
@@ -40,7 +40,7 @@ public class TopicsService {
     }
 
     public Map<String, Object> getTopicPartitionOffset(String topicName, int partitionId) {
-        logger.info("url ::: " + "/topics/" + topicName + "/partitions/" + partitionId + "/offsets");
+        LOGGER.info("url ::: " + "/topics/" + topicName + "/partitions/" + partitionId + "/offsets");
         return restTemplateService.send("/topics/" + topicName + "/partitions/" + partitionId + "/offsets", HttpMethod.GET, null, Map.class);
     }
 }

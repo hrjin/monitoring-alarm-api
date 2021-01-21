@@ -1,6 +1,5 @@
 package org.insoft.monitoring.alarm.api.controller;
 
-import org.insoft.monitoring.alarm.api.common.RestTemplateService;
 import org.insoft.monitoring.alarm.api.service.ConsumerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,7 @@ public class ConsumerController {
     }
 
     @PostMapping("/{groupName}")
-    public Map<String, Object> createConsumerInstance(@PathVariable String groupName, @RequestBody Map parameter) {
+    public Object createConsumerInstance(@PathVariable String groupName, @RequestBody Map parameter) {
         return consumerService.createConsumerInstance(groupName, parameter);
     }
 
@@ -52,7 +51,7 @@ public class ConsumerController {
     }
 
     @GetMapping("/{groupName}/instances/{instance}/records")
-    public List<Map<String, Object>> getMessage(@PathVariable String groupName, @PathVariable String instance) {
+    public Object getMessage(@PathVariable String groupName, @PathVariable String instance) {
         return consumerService.getMessage(groupName, instance);
     }
 }

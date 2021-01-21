@@ -22,8 +22,8 @@ public class ConsumerService {
         this.restTemplateService = restTemplateService;
     }
 
-    public Map<String, Object> createConsumerInstance(String groupName, Map parameter) {
-        return restTemplateService.send("/consumers/" + groupName, HttpMethod.POST, parameter, Map.class);
+    public Object createConsumerInstance(String groupName, Map<String, String> parameter) {
+        return restTemplateService.send("/consumers/" + groupName, HttpMethod.POST, parameter, Object.class);
     }
 
     public Object deleteConsumerInstance(String groupName, String instance) {
@@ -35,8 +35,8 @@ public class ConsumerService {
     }
 
 
-    public List<Map<String, Object>> getMessage(String groupName, String instance) {
-        return restTemplateService.getMsg("/consumers/" + groupName + "/instances/" + instance + "/records", HttpMethod.GET, null, List.class);
+    public Object getMessage(String groupName, String instance) {
+        return restTemplateService.getMsg("/consumers/" + groupName + "/instances/" + instance + "/records", HttpMethod.GET, null, Object.class);
     }
 
     public void subscriptionToConsumer(String groupName, String instance, Map parameter) {
