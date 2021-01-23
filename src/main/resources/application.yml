@@ -13,8 +13,17 @@ spring:
       enable-auto-commit: true
     template:
       default-topic: xxxxxxxxx
-#    listener:
-#      type: batch
+
+ems:
+  api: http://xxx.xxx.xxx.xxx:xxxx
+  linkName: paasta
+  receiver: ""
+
+ums:
+  api: http://xxx.xxx.xxx.xxx:xxxx
+  linkName: paasta
+  receiver: ""
+
 logging:
   level:
     root: INFO

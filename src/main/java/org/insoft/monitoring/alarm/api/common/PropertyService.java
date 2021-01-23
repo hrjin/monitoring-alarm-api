@@ -4,12 +4,14 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Property Service 클래스
  *
  * @author hrjin
  * @version 1.0
- * @since 2020.08.26
+ * @since 2021.01.20
  */
 @Service
 @Data
@@ -38,6 +40,24 @@ public class PropertyService {
 
     @Value("${spring.kafka.template.default-topic}")
     private String defaultTopic;
+
+    @Value("${ems.api}")
+    private String emsApi;
+
+    @Value("${ems.linkName}")
+    private String emsLinkName;
+
+    @Value("${ems.receiver}")
+    private String emsReceiver;
+
+    @Value("${ums.api}")
+    private String umsApi;
+
+    @Value("${ums.linkName}")
+    private String umsLinkName;
+
+    @Value("${ums.receiver}")
+    private List<String> umsReceiver;
 
     @Value("${messaging.pool-size}")
     private int messagingPoolSize;

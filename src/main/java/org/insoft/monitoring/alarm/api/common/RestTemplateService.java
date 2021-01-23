@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
  *
  * @author hrjin
  * @version 1.0
- * @since 2020.08.26
+ * @since 2021.01.19
  */
 @Service
 public class RestTemplateService {
@@ -25,7 +25,7 @@ public class RestTemplateService {
     private final RestTemplate restTemplate;
     private final PropertyService propertyService;
 
-    private String base64Authorization;
+    private String baseUrl;
 
 
     /**
@@ -40,12 +40,16 @@ public class RestTemplateService {
     }
 
 
-    public <T> T send(String reqUrl, HttpMethod httpMethod, Object bodyObject, Class<T> responseType) {
-        return send(reqUrl, httpMethod, bodyObject, responseType, "application/vnd.kafka.v2+json, application/vnd.kafka+json, application/json", "application/vnd.kafka.v2+json");
+    public <T> T send(String reqApi, String reqUrl, HttpMethod httpMethod, Object bodyObject, Class<T> responseType) {
+        return send(reqApi, reqUrl, httpMethod, bodyObject, responseType, "application/vnd.kafka.v2+json, application/vnd.kafka+json, application/json", "application/vnd.kafka.v2+json");
     }
 
-    public <T> T getMsg(String reqUrl, HttpMethod httpMethod, Object bodyObject, Class<T> responseType) {
-        return send(reqUrl, httpMethod, bodyObject, responseType, "application/vnd.kafka.json.v2+json", "application/vnd.kafka.v2+json");
+    public <T> T getMsg(String reqApi, String reqUrl, HttpMethod httpMethod, Object bodyObject, Class<T> responseType) {
+        return send(reqApi, reqUrl, httpMethod, bodyObject, responseType, "application/vnd.kafka.json.v2+json", "application/vnd.kafka.v2+json");
+    }
+
+    public <T> T sendMsg(String reqApi, String reqUrl, HttpMethod httpMethod, Object bodyObject, Class<T> responseType) {
+        return send(reqApi, reqUrl, httpMethod, bodyObject, responseType, "application/json", "application/json");
     }
 
 
@@ -62,7 +66,9 @@ public class RestTemplateService {
      * @param contentType  the content type
      * @return the t
      */
-    public <T> T send(String reqUrl, HttpMethod httpMethod, Object bodyObject, Class<T> responseType, String acceptType, String contentType) {
+    public <T> T send(String reqApi, String reqUrl, HttpMethod httpMethod, Object bodyObject, Class<T> responseType, String acceptType, String contentType) {
+        setReqApiUrl(reqApi);
+
         HttpHeaders reqHeaders = new HttpHeaders();
         reqHeaders.add(CONTENT_TYPE, contentType);
         reqHeaders.add("ACCEPT", acceptType);
@@ -77,13 +83,16 @@ public class RestTemplateService {
         LOGGER.info("<T> T SEND :: REQUEST: {} BASE-URL: {}, CONTENT-TYPE: {}", httpMethod, reqUrl, reqHeaders.get(CONTENT_TYPE));
         ResponseEntity<T> resEntity = null;
         try {
-            resEntity = restTemplate.exchange(propertyService.getKafkaServer() + reqUrl, httpMethod, reqEntity, responseType);
+            LOGGER.info("Full Url ::: " + baseUrl + reqUrl);
+            resEntity = restTemplate.exchange(baseUrl + reqUrl, httpMethod, reqEntity, responseType);
         } catch (HttpStatusCodeException exception) {
             LOGGER.info("HttpStatusCodeException API Call URL : {}, errorCode : {}, errorMessage : {}", reqUrl, exception.getRawStatusCode(), exception.getMessage());
 
-            for (CommonStatusCode code : CommonStatusCode.class.getEnumConstants()) {
-                if(code.getCode() == exception.getRawStatusCode()) {
-                    return (T) new ResultStatus(Constants.RESULT_STATUS_FAIL, code.getMsg());
+            if(Constants.TARGET_KAFKA_API.equals(reqApi)) {
+                for (CommonStatusCode code : CommonStatusCode.class.getEnumConstants()) {
+                    if(code.getCode() == exception.getRawStatusCode()) {
+                        return (T) new ResultStatus(Constants.RESULT_STATUS_FAIL, code.getMsg());
+                    }
                 }
             }
         }
@@ -97,4 +106,25 @@ public class RestTemplateService {
         return resEntity.getBody();
     }
 
+
+    private void setReqApiUrl(String reqApi) {
+        String apiUrl = "";
+
+        // KAFKA API
+        if (Constants.TARGET_KAFKA_API.equals(reqApi)) {
+            apiUrl = propertyService.getKafkaServer();
+        }
+
+        // UMS API
+        if (Constants.TARGET_UMS_API.equals(reqApi)) {
+            apiUrl = propertyService.getUmsApi();
+        }
+
+        // EMS API
+        if (Constants.TARGET_EMS_API.equals(reqApi)) {
+            apiUrl = propertyService.getEmsApi();
+        }
+
+        this.baseUrl = apiUrl;
+    }
 }

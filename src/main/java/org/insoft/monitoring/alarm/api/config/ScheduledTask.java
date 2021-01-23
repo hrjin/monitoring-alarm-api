@@ -1,8 +1,12 @@
 package org.insoft.monitoring.alarm.api.config;
 
+import org.insoft.monitoring.alarm.api.common.Constants;
 import org.insoft.monitoring.alarm.api.common.PropertyService;
 import org.insoft.monitoring.alarm.api.common.ResultStatus;
+import org.insoft.monitoring.alarm.api.model.EmsDetail;
+import org.insoft.monitoring.alarm.api.model.Ums;
 import org.insoft.monitoring.alarm.api.service.ConsumerService;
+import org.insoft.monitoring.alarm.api.service.SendEmsUmsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Kafka Scheduling 클래스
+ *
  * @author hrjin
  * @version 1.0
  * @since 2021.01.20
@@ -27,11 +33,13 @@ public class ScheduledTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledTask.class);
     private final ConsumerService consumerService;
     private final PropertyService propertyService;
+    private final SendEmsUmsService sendEmsUmsService;
 
     @Autowired
-    public ScheduledTask(ConsumerService consumerService, PropertyService propertyService) {
+    public ScheduledTask(ConsumerService consumerService, PropertyService propertyService, SendEmsUmsService sendEmsUmsService) {
         this.consumerService = consumerService;
         this.propertyService = propertyService;
+        this.sendEmsUmsService = sendEmsUmsService;
     }
 
     @PostConstruct
@@ -40,12 +48,12 @@ public class ScheduledTask {
     }
 
     public void createConsumerInstance() {
-        LOGGER.info("초기화 메서드!!!");
+        LOGGER.info("Init Method!!!");
 
         // 1. consumer가 있는지 확인
         Object jsonMsgList = consumerService.getMessage(propertyService.getGroupId(), propertyService.getInstanceName());
         if(isResultStatusInstanceCheck(jsonMsgList)) {
-            LOGGER.info("없어 컨슈머");
+            LOGGER.info("Consumer Instance isn't exist...");
 
             // 2. 없으면 만들어줘요
             Map<String, String> params = new HashMap<>();
@@ -71,11 +79,56 @@ public class ScheduledTask {
 
         try {
             Object obj = consumerService.getMessage(propertyService.getGroupId(), propertyService.getInstanceName());
-            List resultList = (List) obj;
+            List<Map<String, Object>> resultList = (List<Map<String, Object>>) obj;
             LOGGER.info("resultList ::: " + resultList.toString());
             LOGGER.info("resultList size ::: " + resultList.size());
+
+            if(resultList.size() > 0) {
+
+                for (Map<String, Object> map : resultList) {
+                    String content = "";
+                    LOGGER.info("result ::: " + map);
+
+                    Map<String, Object> result = (Map<String, Object>) map.get(Constants.DATA_KEY);
+
+                    if (result != null) {
+                        content = result.get(Constants.DATA_DESC_KEY).toString();
+                        LOGGER.info("content ::: " + content);
+                    }
+
+                    EmsDetail emsDetail = EmsDetail.builder()
+                            .title(Constants.DEFAULT_EMS_TITLE)
+                            .content(content)
+                            .sendInfo("admin@test.co.kr")
+                            .rcvInfo(propertyService.getEmsReceiver())
+                            .categoryNm("전체공지")
+                            .linkNm(propertyService.getEmsLinkName()).build();
+
+                    // EMS api 서버 호출
+                    Map resultEms = (Map) sendEmsUmsService.sendEms(emsDetail);
+                    LOGGER.info("result Ems :: " + resultEms.get("result"));
+
+                    Ums ums = Ums.builder()
+                            .umsTitle(Constants.DEFAULT_UMS_TITLE)
+                            .umsMsg(content)
+                            .sendNo("20200130093000")
+                            .rcvNos(propertyService.getUmsReceiver())
+                            .linkNm(propertyService.getUmsLinkName())
+                            .umsKind("SMS").build();
+
+                    // UMS api 서버 호출
+                    Map resultUms = (Map) sendEmsUmsService.sendUms(ums);
+                    LOGGER.info("result Ums :: " + resultUms.toString());
+                }
+
+            }
+
         } catch (HttpClientErrorException ex) {
-            LOGGER.info("ohoho");
+            LOGGER.info("HttpClientErrorException...");
+            LOGGER.info(ex.getLocalizedMessage());
+        } catch (NullPointerException ex) {
+            LOGGER.info("Null...");
+            LOGGER.info(ex.getLocalizedMessage());
         }
 
 

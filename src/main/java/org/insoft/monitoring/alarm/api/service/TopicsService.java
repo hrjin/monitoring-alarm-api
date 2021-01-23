@@ -1,6 +1,7 @@
 package org.insoft.monitoring.alarm.api.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.insoft.monitoring.alarm.api.common.Constants;
 import org.insoft.monitoring.alarm.api.common.RestTemplateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Topic 관리 클래스
+ *
  * @author hrjin
  * @version 1.0
  * @since 2021.01.19
@@ -28,19 +31,19 @@ public class TopicsService {
     }
 
     public List<String> getTopics() {
-        return restTemplateService.send("/topics", HttpMethod.GET, null, List.class);
+        return restTemplateService.send(Constants.TARGET_KAFKA_API,"/topics", HttpMethod.GET, null, List.class);
     }
 
     public Map<String, Object> getTopic(String topicName) {
-        return restTemplateService.send("/topics/" + topicName, HttpMethod.GET, null, Map.class);
+        return restTemplateService.send(Constants.TARGET_KAFKA_API,"/topics/" + topicName, HttpMethod.GET, null, Map.class);
     }
 
     public List<Map<String, Object>> getTopicPartitions(String topicName) {
-        return restTemplateService.send("/topics/" + topicName + "/partitions", HttpMethod.GET, null, List.class);
+        return restTemplateService.send(Constants.TARGET_KAFKA_API,"/topics/" + topicName + "/partitions", HttpMethod.GET, null, List.class);
     }
 
     public Map<String, Object> getTopicPartitionOffset(String topicName, int partitionId) {
         LOGGER.info("url ::: " + "/topics/" + topicName + "/partitions/" + partitionId + "/offsets");
-        return restTemplateService.send("/topics/" + topicName + "/partitions/" + partitionId + "/offsets", HttpMethod.GET, null, Map.class);
+        return restTemplateService.send(Constants.TARGET_KAFKA_API,"/topics/" + topicName + "/partitions/" + partitionId + "/offsets", HttpMethod.GET, null, Map.class);
     }
 }
