@@ -22,7 +22,8 @@ ems:
 ums:
   api: http://xxx.xxx.xxx.xxx:xxxx
   linkName: paasta
-  receiver: ""
+  sendNo: 01000000000
+  receiver: 01000000000
 
 logging:
   level:

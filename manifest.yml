@@ -1,0 +1,24 @@
+applications:
+- name: monitoring-alarm-api
+  memory: 1G
+  instances: 1
+  path: ./monitoring-alarm-api.jar
+  buildpacks: 
+  - java_buildpack_offline
+  env:
+    spring_kafka_bootstrap-servers: 'http://xxx.xxx.xxx.xxx:xxxx'   # kafka proxy server API
+    spring_kafka_consumer_group-id: consumer-group                  # consumer group you want
+    spring_kafka_consumer_instance_name: my-consumer                # consumer instance name you want
+    spring_kafka_consumer_auto-offset-reset: earliest
+    spring_kafka_consumer_enable-auto-commit: true
+    spring_kafka_template_default-topic: cloudMonAlert              # topic
+    ems_api: 'http://xxx.xxx.xxx.xxx:xxxx'                          # ems server API
+    ems_linkName: ems
+    ems_receiver: 'test@gmail.com,test2@gmail.com'                  # 띄어쓰기 없이 같은 형식으로 n개
+    ums_api: 'http://xxx.xxx.xxx.xxx:xxxx'                          # ums server API
+    ums_linkName: ums
+    ums_sendNo: '000000000'
+    ums_receiver: "'01000000000', '01000000001', '01000000002'"     # 같은 형식으로 n개
+    messaging_pool-size: 3
+    messaging_ready-fixed-rate: 60000
+    messaging_ready-initial-delay: 3000

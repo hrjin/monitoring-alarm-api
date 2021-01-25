@@ -80,6 +80,11 @@ public class ScheduledTask {
 
         try {
             Object obj = consumerService.getMessage(propertyService.getGroupId(), propertyService.getInstanceName());
+            if(isResultStatusInstanceCheck(obj)) {
+                LOGGER.info("Message Get Error");
+                return;
+            }
+
             List<Map<String, Object>> resultList = (List<Map<String, Object>>) obj;
             LOGGER.info("resultList ::: " + resultList.toString());
             LOGGER.info("resultList size ::: " + resultList.size());
@@ -102,7 +107,6 @@ public class ScheduledTask {
                     String umsResultMsg = callUmsApi(content);
                     LOGGER.info("SMS Sending Result ::: " + umsResultMsg);
 
-
                 }
             }
 
@@ -111,6 +115,9 @@ public class ScheduledTask {
             LOGGER.info(ex.getLocalizedMessage());
         } catch (NullPointerException ex) {
             LOGGER.info("Null...");
+            LOGGER.info(ex.getLocalizedMessage());
+        } catch (ClassCastException ex) {
+            LOGGER.info("Casting Exception...");
             LOGGER.info(ex.getLocalizedMessage());
         }
 
@@ -143,13 +150,18 @@ public class ScheduledTask {
 
     private String callUmsApi(String content) {
         LOGGER.info("SMS send start!!!");
+        LOGGER.info("send no ::: " + propertyService.getSendNo());
+
+        for (String num:propertyService.getUmsReceiver()) {
+            LOGGER.info("receiver no ::: " + num);
+        }
+
         Ums ums = Ums.builder()
-                .umsTitle(Constants.DEFAULT_UMS_TITLE)
+                .msgTitle(Constants.DEFAULT_UMS_TITLE)
                 .umsMsg(content)
-                .sendNo("0212345678")
+                .sendNo(propertyService.getSendNo())
                 .rcvNos(propertyService.getUmsReceiver())
-                .linkNm(propertyService.getUmsLinkName())
-                .umsKind("SMS").build();
+                .linkNm(propertyService.getUmsLinkName()).build();
 
         // UMS api 서버 호출
         ResultEmsUms resultUms = sendEmsUmsService.sendUms(ums);

@@ -56,6 +56,9 @@ public class PropertyService {
     @Value("${ums.linkName}")
     private String umsLinkName;
 
+    @Value("${ums.sendNo}")
+    private String sendNo;
+
     @Value("${ums.receiver}")
     private List<String> umsReceiver;
 

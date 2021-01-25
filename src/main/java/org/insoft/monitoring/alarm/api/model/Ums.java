@@ -15,17 +15,11 @@ import java.util.List;
 @Data
 @Builder
 public class Ums {
-    // 옵션
-    private String umsTitle;
+    private String msgTitle;
     private String umsMsg;
     private String sendNo;
     private List<String> rcvNos;
-
-    // 옵션
     private String sendDate;
-
     private String linkNm;
-
-    // 옵션
     private String umsKind;
 }
