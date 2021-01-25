@@ -2,8 +2,9 @@ package org.insoft.monitoring.alarm.api.config;
 
 import org.insoft.monitoring.alarm.api.common.Constants;
 import org.insoft.monitoring.alarm.api.common.PropertyService;
-import org.insoft.monitoring.alarm.api.common.ResultStatus;
 import org.insoft.monitoring.alarm.api.model.EmsDetail;
+import org.insoft.monitoring.alarm.api.model.ResultEmsUms;
+import org.insoft.monitoring.alarm.api.model.ResultStatus;
 import org.insoft.monitoring.alarm.api.model.Ums;
 import org.insoft.monitoring.alarm.api.service.ConsumerService;
 import org.insoft.monitoring.alarm.api.service.SendEmsUmsService;
@@ -75,7 +76,7 @@ public class ScheduledTask {
 
     @Scheduled(fixedRateString = "${messaging.ready-fixed-rate}", initialDelayString = "${messaging.ready-initial-delay}")
     public void readyGetMessaging() {
-        LOGGER.info("===================Kafka get Message ::: start===================");
+        LOGGER.info("===================Kafka get Message & Sending Email, SMS ::: start===================");
 
         try {
             Object obj = consumerService.getMessage(propertyService.getGroupId(), propertyService.getInstanceName());
@@ -84,7 +85,6 @@ public class ScheduledTask {
             LOGGER.info("resultList size ::: " + resultList.size());
 
             if(resultList.size() > 0) {
-
                 for (Map<String, Object> map : resultList) {
                     String content = "";
                     LOGGER.info("result ::: " + map);
@@ -96,31 +96,14 @@ public class ScheduledTask {
                         LOGGER.info("content ::: " + content);
                     }
 
-                    EmsDetail emsDetail = EmsDetail.builder()
-                            .title(Constants.DEFAULT_EMS_TITLE)
-                            .content(content)
-                            .sendInfo("admin@test.co.kr")
-                            .rcvInfo(propertyService.getEmsReceiver())
-                            .categoryNm("전체공지")
-                            .linkNm(propertyService.getEmsLinkName()).build();
+                    String emsResultMsg = callEmsApi(content);
+                    LOGGER.info("Email Sending Result ::: " + emsResultMsg);
 
-                    // EMS api 서버 호출
-                    Map resultEms = (Map) sendEmsUmsService.sendEms(emsDetail);
-                    LOGGER.info("result Ems :: " + resultEms.get("result"));
+                    String umsResultMsg = callUmsApi(content);
+                    LOGGER.info("SMS Sending Result ::: " + umsResultMsg);
 
-                    Ums ums = Ums.builder()
-                            .umsTitle(Constants.DEFAULT_UMS_TITLE)
-                            .umsMsg(content)
-                            .sendNo("20200130093000")
-                            .rcvNos(propertyService.getUmsReceiver())
-                            .linkNm(propertyService.getUmsLinkName())
-                            .umsKind("SMS").build();
 
-                    // UMS api 서버 호출
-                    Map resultUms = (Map) sendEmsUmsService.sendUms(ums);
-                    LOGGER.info("result Ums :: " + resultUms.toString());
                 }
-
             }
 
         } catch (HttpClientErrorException ex) {
@@ -131,12 +114,47 @@ public class ScheduledTask {
             LOGGER.info(ex.getLocalizedMessage());
         }
 
-
-        LOGGER.info("===================Kafka get Message ::: end===================");
+        LOGGER.info("===================Kafka get Message & Sending Email, SMS  ::: end===================");
     }
 
 
     public static boolean isResultStatusInstanceCheck(Object object) {
         return object instanceof ResultStatus;
+    }
+
+
+    private String callEmsApi(String content) {
+        LOGGER.info("Email send start!!!");
+        EmsDetail emsDetail = EmsDetail.builder()
+                .title(Constants.DEFAULT_EMS_TITLE)
+                .content(content)
+                .sendInfo("admin@test.co.kr")
+                .rcvInfo(propertyService.getEmsReceiver())
+                .categoryNm("전체공지")
+                .linkNm(propertyService.getEmsLinkName()).build();
+
+        // EMS api 서버 호출
+        ResultEmsUms resultEms = sendEmsUmsService.sendEms(emsDetail);
+        LOGGER.info("result Ems :: " + resultEms.getResult().getResult());
+
+        return resultEms.getResult().getResult();
+    }
+
+
+    private String callUmsApi(String content) {
+        LOGGER.info("SMS send start!!!");
+        Ums ums = Ums.builder()
+                .umsTitle(Constants.DEFAULT_UMS_TITLE)
+                .umsMsg(content)
+                .sendNo("0212345678")
+                .rcvNos(propertyService.getUmsReceiver())
+                .linkNm(propertyService.getUmsLinkName())
+                .umsKind("SMS").build();
+
+        // UMS api 서버 호출
+        ResultEmsUms resultUms = sendEmsUmsService.sendUms(ums);
+        LOGGER.info("result Ums :: " + resultUms.getResult().getResult());
+
+        return resultUms.getResult().getResult();
     }
 }

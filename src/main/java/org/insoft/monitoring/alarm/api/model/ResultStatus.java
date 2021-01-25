@@ -1,4 +1,4 @@
-package org.insoft.monitoring.alarm.api.common;
+package org.insoft.monitoring.alarm.api.model;
 
 import lombok.Data;
 

@@ -1,5 +1,6 @@
 package org.insoft.monitoring.alarm.api.common;
 
+import org.insoft.monitoring.alarm.api.model.ResultStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +86,8 @@ public class RestTemplateService {
         try {
             LOGGER.info("Full Url ::: " + baseUrl + reqUrl);
             resEntity = restTemplate.exchange(baseUrl + reqUrl, httpMethod, reqEntity, responseType);
+            LOGGER.info("resEntity.toString() ::: " + resEntity.toString());
+            LOGGER.info("resEntity.getBody() ::: " + resEntity.getBody());
         } catch (HttpStatusCodeException exception) {
             LOGGER.info("HttpStatusCodeException API Call URL : {}, errorCode : {}, errorMessage : {}", reqUrl, exception.getRawStatusCode(), exception.getMessage());
 
