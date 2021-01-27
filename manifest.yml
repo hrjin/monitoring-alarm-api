@@ -14,6 +14,7 @@ applications:
     spring_kafka_template_default-topic: cloudMonAlert              # topic
     ems_api: 'http://xxx.xxx.xxx.xxx:xxxx'                          # ems server API
     ems_linkName: ems
+    ems_sendInfo: 'admin@test.co.kr'
     ems_receiver: 'test@gmail.com,test2@gmail.com'                  # 띄어쓰기 없이 같은 형식으로 n개
     ums_api: 'http://xxx.xxx.xxx.xxx:xxxx'                          # ums server API
     ums_linkName: ums
