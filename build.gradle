@@ -34,6 +34,10 @@ dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
     // gson
     compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
+    // commons-codec
+    compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
+    // json-simple
+    compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 

@@ -8,6 +8,9 @@ import org.insoft.monitoring.alarm.api.model.ResultStatus;
 import org.insoft.monitoring.alarm.api.model.Ums;
 import org.insoft.monitoring.alarm.api.service.ConsumerService;
 import org.insoft.monitoring.alarm.api.service.SendEmsUmsService;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.Base64.Decoder;
 
 /**
  * Kafka Scheduling 클래스
@@ -52,14 +53,14 @@ public class ScheduledTask {
         LOGGER.info("Init Method!!!");
 
         // 1. consumer가 있는지 확인
-        Object jsonMsgList = consumerService.getMessage(propertyService.getGroupId(), propertyService.getInstanceName());
-        if(isResultStatusInstanceCheck(jsonMsgList)) {
+        Object rsMap = consumerService.getSubscription(propertyService.getGroupId(), propertyService.getInstanceName());
+        if(isResultStatusCheck(rsMap)) {
             LOGGER.info("Consumer Instance isn't exist...");
 
             // 2. 없으면 만들어줘요
             Map<String, String> params = new HashMap<>();
             params.put("name", propertyService.getInstanceName());
-            params.put("format", "json");
+            params.put("format", "binary");
             params.put("auto.offset.reset", propertyService.getOffsetReset());
             params.put("auto.commit.enable", propertyService.getEnableAutoCommit());
 
@@ -80,24 +81,35 @@ public class ScheduledTask {
 
         try {
             Object obj = consumerService.getMessage(propertyService.getGroupId(), propertyService.getInstanceName());
-            if(isResultStatusInstanceCheck(obj)) {
+            if(isResultStatusCheck(obj)) {
                 LOGGER.info("Message Get Error");
                 return;
             }
 
-            List<Map<String, Object>> resultList = (List<Map<String, Object>>) obj;
+            List<Map> resultList = (List<Map>) obj;
             LOGGER.info("resultList ::: " + resultList.toString());
             LOGGER.info("resultList size ::: " + resultList.size());
 
             if(resultList.size() > 0) {
-                for (Map<String, Object> map : resultList) {
+                for (Map map : resultList) {
                     String content = "";
+                    String trigger = "";
                     LOGGER.info("result ::: " + map);
 
-                    Map<String, Object> result = (Map<String, Object>) map.get(Constants.DATA_KEY);
+                    // base64 value
+                    String value = (String) map.get(Constants.DATA_KEY);
+                    JSONObject resultJson = decodeBase64String(value);
 
-                    if (result != null) {
-                        content = result.get(Constants.DATA_DESC_KEY).toString();
+                    LOGGER.info("result >>> " + value);
+                    LOGGER.info("result json >>> " + resultJson);
+
+                    if (value != null) {
+
+                        // 내가 쓸만한 것은 description, details
+                        trigger = resultJson.get(Constants.DATA_DETAILS_KEY).toString();
+                        LOGGER.info("trigger ::: " + trigger);
+
+                        content = resultJson.get(Constants.DATA_DESC_KEY).toString();
                         LOGGER.info("content ::: " + content);
                     }
 
@@ -119,17 +131,31 @@ public class ScheduledTask {
         } catch (ClassCastException ex) {
             LOGGER.info("Casting Exception...");
             LOGGER.info(ex.getLocalizedMessage());
+        } catch (ParseException e) {
+            LOGGER.info("Parse Exception...");
         }
 
         LOGGER.info("===================Kafka get Message & Sending Email, SMS  ::: end===================");
     }
 
 
-    public static boolean isResultStatusInstanceCheck(Object object) {
+    /**
+     * Error 일 경우 Error 객체로 리턴됐는지 확인
+     *
+     * @param object the object
+     * @return the boolean
+     */
+    public static boolean isResultStatusCheck(Object object) {
         return object instanceof ResultStatus;
     }
 
 
+    /**
+     * EMS 전송 API 호출
+     *
+     * @param content the content
+     * @return the String
+     */
     private String callEmsApi(String content) {
         LOGGER.info("Email send start!!!");
         EmsDetail emsDetail = EmsDetail.builder()
@@ -148,6 +174,12 @@ public class ScheduledTask {
     }
 
 
+    /**
+     * UMS 전송 API 호출
+     *
+     * @param content the content
+     * @return the String
+     */
     private String callUmsApi(String content) {
         LOGGER.info("SMS send start!!!");
         LOGGER.info("send no ::: " + propertyService.getSendNo());
@@ -168,5 +200,25 @@ public class ScheduledTask {
         LOGGER.info("result Ums :: " + resultUms.getResult().getResult());
 
         return resultUms.getResult().getResult();
+    }
+
+
+    /**
+     * Base64 to Json Object
+     *
+     * @param value the value
+     * @return the Json Object
+     * @throws ParseException
+     */
+    private JSONObject decodeBase64String(String value) throws ParseException {
+        Decoder decoder = Base64.getDecoder();
+        byte[] decodeBytes = decoder.decode(value);
+        String stringFrmJsonByteArray = new String(decodeBytes);
+
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(stringFrmJsonByteArray);
+        JSONObject jsonObj = (JSONObject) obj;
+
+        return jsonObj;
     }
 }

@@ -36,6 +36,9 @@ public class ConsumerService {
         return restTemplateService.send(Constants.TARGET_KAFKA_API,"/consumers/" + groupName + "/instances/" + instance, HttpMethod.POST, null, Map.class);
     }
 
+    public Object getSubscription(String groupName, String instance) {
+        return restTemplateService.send(Constants.TARGET_KAFKA_API, "/consumers/" + groupName + "/instances/" + instance + "/subscription", HttpMethod.GET, null, Object.class);
+    }
 
     public Object getMessage(String groupName, String instance) {
         return restTemplateService.getMsg(Constants.TARGET_KAFKA_API,"/consumers/" + groupName + "/instances/" + instance + "/records", HttpMethod.GET, null, Object.class);

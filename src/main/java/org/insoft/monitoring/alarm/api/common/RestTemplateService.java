@@ -46,7 +46,7 @@ public class RestTemplateService {
     }
 
     public <T> T getMsg(String reqApi, String reqUrl, HttpMethod httpMethod, Object bodyObject, Class<T> responseType) {
-        return send(reqApi, reqUrl, httpMethod, bodyObject, responseType, "application/vnd.kafka.json.v2+json", "application/vnd.kafka.v2+json");
+        return send(reqApi, reqUrl, httpMethod, bodyObject, responseType, "application/vnd.kafka.binary.v2+json", "application/vnd.kafka.binary.v2+json");
     }
 
     public <T> T sendMsg(String reqApi, String reqUrl, HttpMethod httpMethod, Object bodyObject, Class<T> responseType) {
@@ -94,7 +94,7 @@ public class RestTemplateService {
             if(Constants.TARGET_KAFKA_API.equals(reqApi)) {
                 for (CommonStatusCode code : CommonStatusCode.class.getEnumConstants()) {
                     if(code.getCode() == exception.getRawStatusCode()) {
-                        return (T) new ResultStatus(Constants.RESULT_STATUS_FAIL, code.getMsg());
+                        return (T) new ResultStatus(code.getCode(), code.getMsg());
                     }
                 }
             }

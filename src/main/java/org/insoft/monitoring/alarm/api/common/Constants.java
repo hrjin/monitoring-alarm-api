@@ -21,6 +21,7 @@ public class Constants {
 
     public static final String DATA_KEY = "value";
     public static final String DATA_DESC_KEY = "description";
+    public static final String DATA_DETAILS_KEY = "details";
 
     public Constants() {
         throw new IllegalStateException();

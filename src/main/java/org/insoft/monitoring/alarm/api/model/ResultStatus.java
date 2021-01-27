@@ -1,5 +1,6 @@
 package org.insoft.monitoring.alarm.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -11,11 +12,12 @@ import lombok.Data;
  **/
 @Data
 public class ResultStatus {
-    private String resultCode;
-    private String resultMessage;
+    @JsonProperty("error_code")
+    private int errorCode;
+    private String message;
 
-    public ResultStatus(String resultCode, String resultMessage) {
-        this.resultCode = resultCode;
-        this.resultMessage = resultMessage;
+    public ResultStatus(int errorCode, String message) {
+        this.errorCode = errorCode;
+        this.message = message;
     }
 }
