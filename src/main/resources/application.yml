@@ -17,13 +17,14 @@ spring:
 ems:
   api: http://xxx.xxx.xxx.xxx:xxxx
   linkName: paasta
-  receiver: ""
+  sendInfo: 'admin@test.co.kr'
+  receiver: 'admin1@test.co.kr,admin2@test.co.kr'        # 메일 n개일 경우 띄어쓰기 없이 기입
 
 ums:
   api: http://xxx.xxx.xxx.xxx:xxxx
   linkName: paasta
   sendNo: 01000000000
-  receiver: 01000000000
+  receiver: 01000000000                # 01000000000, 01000000001 형식으로 기입
 
 logging:
   level:

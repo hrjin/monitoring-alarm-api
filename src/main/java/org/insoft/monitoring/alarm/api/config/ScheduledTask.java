@@ -19,6 +19,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Base64.Decoder;
 
@@ -49,6 +52,11 @@ public class ScheduledTask {
         createConsumerInstance();
     }
 
+
+    /**
+     * Consumer Instance 유뮤 확인 후 없을 시 생성 및 Topic 구독
+     *
+     */
     public void createConsumerInstance() {
         LOGGER.info("Init Method!!!");
 
@@ -75,6 +83,11 @@ public class ScheduledTask {
         }
     }
 
+
+    /**
+     * Get Kafka Message Periodically
+     *
+     */
     @Scheduled(fixedRateString = "${messaging.ready-fixed-rate}", initialDelayString = "${messaging.ready-initial-delay}")
     public void readyGetMessaging() {
         LOGGER.info("===================Kafka get Message & Sending Email, SMS ::: start===================");
@@ -96,27 +109,43 @@ public class ScheduledTask {
                     String trigger = "";
                     LOGGER.info("result ::: " + map);
 
-                    // base64 value
+                    // Base64 value
                     String value = (String) map.get(Constants.DATA_KEY);
+
+                    // Base64 value to Json Object
                     JSONObject resultJson = decodeBase64String(value);
 
                     LOGGER.info("result >>> " + value);
                     LOGGER.info("result json >>> " + resultJson);
 
+                    String currentDateTime = LocalDateTime.now(ZoneId.of(Constants.STRING_TIME_ZONE_ID)).format(DateTimeFormatter.ofPattern(Constants.STRING_DATE_TYPE));
+                    
+                    String title = null;
+                    String finalMsg = currentDateTime + "에 ";
+                    
                     if (value != null) {
-
-                        // 내가 쓸만한 것은 description, details
+                        // alarm이 발생한 VM info
                         trigger = resultJson.get(Constants.DATA_DETAILS_KEY).toString();
                         LOGGER.info("trigger ::: " + trigger);
 
+                        // 최종 메시지
+                        finalMsg += trigger + " 에서";
                         content = resultJson.get(Constants.DATA_DESC_KEY).toString();
                         LOGGER.info("content ::: " + content);
-                    }
 
-                    String emsResultMsg = callEmsApi(content);
+                        if(content.contains("-")) {
+                            String[] desc = content.split("-");
+                            title = desc[0];
+                            finalMsg += desc[1];
+                        }
+                    }
+                    LOGGER.info("title ::: " + title);
+                    LOGGER.info("finalMsg ::: " + finalMsg);
+                    
+                    String emsResultMsg = callEmsApi(title, finalMsg);
                     LOGGER.info("Email Sending Result ::: " + emsResultMsg);
 
-                    String umsResultMsg = callUmsApi(content);
+                    String umsResultMsg = callUmsApi(title, content);
                     LOGGER.info("SMS Sending Result ::: " + umsResultMsg);
 
                 }
@@ -156,12 +185,12 @@ public class ScheduledTask {
      * @param content the content
      * @return the String
      */
-    private String callEmsApi(String content) {
+    private String callEmsApi(String title, String content) {
         LOGGER.info("Email send start!!!");
         EmsDetail emsDetail = EmsDetail.builder()
-                .title(Constants.DEFAULT_EMS_TITLE)
+                .title(title)
                 .content(content)
-                .sendInfo("admin@test.co.kr")
+                .sendInfo(propertyService.getEmsSendInfo())
                 .rcvInfo(propertyService.getEmsReceiver())
                 .categoryNm("전체공지")
                 .linkNm(propertyService.getEmsLinkName()).build();
@@ -180,7 +209,7 @@ public class ScheduledTask {
      * @param content the content
      * @return the String
      */
-    private String callUmsApi(String content) {
+    private String callUmsApi(String title, String content) {
         LOGGER.info("SMS send start!!!");
         LOGGER.info("send no ::: " + propertyService.getSendNo());
 
@@ -189,7 +218,7 @@ public class ScheduledTask {
         }
 
         Ums ums = Ums.builder()
-                .msgTitle(Constants.DEFAULT_UMS_TITLE)
+                .msgTitle(title)
                 .umsMsg(content)
                 .sendNo(propertyService.getSendNo())
                 .rcvNos(propertyService.getUmsReceiver())

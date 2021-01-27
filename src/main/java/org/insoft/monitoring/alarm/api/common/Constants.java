@@ -23,6 +23,9 @@ public class Constants {
     public static final String DATA_DESC_KEY = "description";
     public static final String DATA_DETAILS_KEY = "details";
 
+    public static final String STRING_DATE_TYPE = "yyyy-MM-dd HH:mm:ss";
+    public static final String STRING_TIME_ZONE_ID = "Asia/Seoul";
+
     public Constants() {
         throw new IllegalStateException();
     }

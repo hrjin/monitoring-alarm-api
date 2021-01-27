@@ -47,6 +47,9 @@ public class PropertyService {
     @Value("${ems.linkName}")
     private String emsLinkName;
 
+    @Value("${ems.sendInfo}")
+    private String emsSendInfo;
+
     @Value("${ems.receiver}")
     private String emsReceiver;
 
