@@ -145,7 +145,7 @@ public class ScheduledTask {
                     String emsResultMsg = callEmsApi(title, finalMsg);
                     LOGGER.info("Email Sending Result ::: " + emsResultMsg);
 
-                    String umsResultMsg = callUmsApi(title, content);
+                    String umsResultMsg = callUmsApi(title, finalMsg);
                     LOGGER.info("SMS Sending Result ::: " + umsResultMsg);
 
                 }
